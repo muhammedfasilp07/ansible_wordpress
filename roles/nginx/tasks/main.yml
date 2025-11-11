@@ -1,0 +1,23 @@
+- name: Install nginx
+  yum:
+    name: nginx
+    state: present
+
+- name: Create nginx config for WordPress
+  template:
+    src: wordpress.conf.j2
+    dest: /etc/nginx/conf.d/wordpress.conf
+
+- name: Create nginx config for phpMyAdmin
+  template:
+    src: phpmyadmin.conf.j2
+    dest: /etc/nginx/conf.d/phpmyadmin.conf
+
+- name: Start & enable nginx
+  systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- include_tasks: ssl.yml
+

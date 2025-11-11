@@ -1,0 +1,24 @@
+# Server information
+server_ip: "13.127.64.74"
+domain_name: "muhammedfasilp07.info"
+ssl_email: "fasilp8606@gmail.com"  
+
+# WordPress details
+wordpress_root: "/home/fasil/webfasil/public/wordpress"
+wordpress_admin_user: "Fasil"
+wordpress_admin_password: "ipsr@8606058809"
+
+# Database
+db_root_password: "123"
+wordpress_db_name: "wpdb"
+wordpress_db_user: "fasilipsr"
+wordpress_db_password: "ipsr"
+
+# phpMyAdmin
+phpmyadmin_root: "/home/fasil/webfasil/public/phpMyAdmin"
+
+# SFTP user setup
+sftp_user: "fasil"
+sftp_password: "123"
+sftp_home: "/home/fasil"
+

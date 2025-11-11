@@ -1,0 +1,46 @@
+---
+- name: Ensure python3 and pip are installed
+  ansible.builtin.dnf:
+    name:
+      - python3
+      - python3-pip
+    state: present
+
+- name: Install Certbot and Nginx plugin via pip
+  ansible.builtin.pip:
+    name:
+      - certbot
+      - certbot-nginx
+    executable: pip3
+
+- name: Ensure certbot binary is in PATH
+  ansible.builtin.file:
+    src: /usr/local/bin/certbot
+    dest: /usr/bin/certbot
+    state: link
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Obtain SSL certificate for WordPress and phpMyAdmin
+  ansible.builtin.command:
+    cmd: >
+      /usr/bin/certbot --nginx -d {{ domain_name }}
+      -d www.{{ domain_name }}
+      --non-interactive
+      --agree-tos
+      -m {{ ssl_email }}
+      --redirect
+  args:
+    creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+
+- name: Ensure Certbot auto-renewal is enabled
+  ansible.builtin.cron:
+    name: "Certbot automatic renewal"
+    job: "/usr/bin/certbot renew --quiet"
+    minute: 0
+    hour: 3
+
+- name: Reload Nginx to apply new SSL configuration
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+      

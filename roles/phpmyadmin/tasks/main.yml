@@ -1,0 +1,40 @@
+---
+- name: Ensure phpMyAdmin directory exists
+  file:
+    path: "{{ phpmyadmin_root }}"
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: "0755"
+    recurse: yes
+
+- name: Download phpMyAdmin
+  get_url:
+    url: https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+    dest: /tmp/phpmyadmin.tar.gz
+
+- name: Extract phpMyAdmin
+  unarchive:
+    src: /tmp/phpmyadmin.tar.gz
+    dest: "{{ phpmyadmin_root }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    owner: nginx
+    group: nginx
+
+- name: Fix permissions and SELinux for phpMyAdmin
+  block:
+    - name: Set file ownership
+      file:
+        path: "{{ phpmyadmin_root }}"
+        owner: nginx
+        group: nginx
+        recurse: yes
+
+    - name: Set correct permissions
+      command: find {{ phpmyadmin_root }} -type d -exec chmod 755 {} \; -o -type f -exec chmod 644 {} \;
+
+    - name: Allow Nginx to access phpMyAdmin (SELinux)
+      command: chcon -R -t httpd_sys_rw_content_t {{ phpmyadmin_root }}
+      when: ansible_selinux.status == "enabled"
+

@@ -1,0 +1,21 @@
+- name: Create SFTP user
+  user:
+    name: "{{ sftp_user }}"
+    password: "{{ sftp_password | password_hash('sha512') }}"
+    home: "{{ sftp_home }}"
+    create_home: yes
+
+- name: Allow SFTP restriction
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: |
+      Match User {{ sftp_user }}
+        ChrootDirectory {{ sftp_home }}
+        ForceCommand internal-sftp
+        PasswordAuthentication yes
+
+- name: Restart SSHD
+  systemd:
+    name: sshd
+    state: restarted
+

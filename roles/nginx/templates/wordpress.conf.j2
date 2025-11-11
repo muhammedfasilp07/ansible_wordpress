@@ -1,0 +1,65 @@
+server {
+    server_name {{ domain_name }} www.{{ domain_name }};
+
+    root {{ wordpress_root }};
+    index index.php index.html index.htm;
+
+    # WordPress main site
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # phpMyAdmin subdirectory
+    location /phpMyAdmin {
+        alias {{ phpmyadmin_root }}/;
+        index index.php index.html;
+
+        location ~ ^/phpMyAdmin/(.+\.php)$ {
+            alias {{ phpmyadmin_root }}/$1;
+            include fastcgi_params;
+            fastcgi_pass unix:/run/php-fpm/www.sock;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME {{ phpmyadmin_root }}/$1;
+        }
+        location ~ /\.ht {
+            deny all;
+        }
+    }
+
+    # Optional: Security headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/{{ domain_name }}/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = www.{{ domain_name }}) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = {{ domain_name }}) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name {{ domain_name }} www.{{ domain_name }};
+    return 404; # managed by Certbot
+}
+

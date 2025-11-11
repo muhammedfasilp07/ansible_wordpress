@@ -1,0 +1,10 @@
+---
+- hosts: web
+  become: yes
+  roles:
+    - php
+    - nginx
+    - wordpress
+    - phpmyadmin
+    - sftp_user
+
